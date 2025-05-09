@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CodTech Real-Time Chat</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef;
+      text-align: center;
+      padding: 30px;
+    }
+    #room-select, #chat {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+    }
+    #messages {
+      border: 1px solid #ccc;
+      height: 250px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #f9f9f9;
+    }
+    input, select, button {
+      padding: 10px;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>CodTech Chat Rooms</h1>
+
+  <div id="room-select">
+    <label for="room">Choose or enter a chat room:</label><br>
+    <input id="roomInput" placeholder="Enter room name..." />
+    <button onclick="joinRoom()">Join Room</button>
+  </div>
+
+  <div id="chat">
+    <h2 id="room-title">Room: </h2>
+    <div id="messages"></div>
+    <input id="msg" placeholder="Type a message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    const socket = io();
+    let currentRoom = '';
+
+    document.getElementById('room-select').style.display = 'block';
+
+    function joinRoom() {
+      const room = document.getElementById('roomInput').value.trim();
+      if (!room) return alert("Please enter a room name.");
+      currentRoom = room;
+
+      socket.emit('joinRoom', room);
+      document.getElementById('room-title').innerText = 'Room: ' + room;
+      document.getElementById('room-select').style.display = 'none';
+      document.getElementById('chat').style.display = 'block';
+    }
+
+    function sendMessage() {
+      const msg = document.getElementById('msg').value.trim();
+      if (msg) {
+        socket.emit('chatMessage', { room: currentRoom, message: msg });
+        document.getElementById('msg').value = '';
+      }
+    }
+
+    socket.on('message', (msg) => {
+      const div = document.createElement('div');
+      div.innerText = msg;
+      document.getElementById('messages').appendChild(div);
+    });
+  </script>
+</body>
+</html>
